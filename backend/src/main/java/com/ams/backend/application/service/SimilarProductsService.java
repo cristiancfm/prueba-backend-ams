@@ -16,9 +16,18 @@ public class SimilarProductsService {
         this.productClient = productClient;
     }
 
+    public ProductDTO getProductById(Long productId) {
+        return productClient.getProductById(productId);
+    }
+
     public List<ProductDTO> getSimilarProducts(Long productId) {
+        // Get similar product IDs
         List<Long> similarIds = productClient.getSimilarProductIds(productId);
 
-        return similarIds.stream().map(productClient::getProductById).filter(Objects::nonNull).toList();
+        // Get product details for each ID
+        return similarIds.stream()
+                .map(productClient::getProductById)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }

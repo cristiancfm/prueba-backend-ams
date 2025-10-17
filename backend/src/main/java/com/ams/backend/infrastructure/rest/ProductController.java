@@ -22,8 +22,13 @@ public class ProductController {
 
     @GetMapping("/{productId}/similar")
     public ResponseEntity<List<ProductDTO>> getSimilarProducts(@PathVariable Long productId) {
-        List<ProductDTO> similarProducts = similarProductsService.getSimilarProducts(productId);
+        // Check if the original product exists
+        ProductDTO originalProduct = similarProductsService.getProductById(productId);
+        if (originalProduct == null) {
+            return ResponseEntity.notFound().build();
+        }
 
+        List<ProductDTO> similarProducts = similarProductsService.getSimilarProducts(productId);
         return ResponseEntity.ok(similarProducts);
     }
 }
