@@ -20,16 +20,16 @@ public class ProductClient {
         this.externalBaseUrl = externalBaseUrl;
     }
 
-    public List<String> getSimilarProductIds(String productId) {
+    public List<Long> getSimilarProductIds(Long productId) {
         String url = String.format("%s/product/%s/similarids", externalBaseUrl, productId);
-        String[] similarIds = restTemplate.getForObject(url, String[].class);
+        Long[] similarIds = restTemplate.getForObject(url, Long[].class);
         if (similarIds == null) {
             return Collections.emptyList(); // Return empty list if no similar IDs are found
         }
         return List.of(similarIds);
     }
 
-    public ProductDTO getProductById(String productId) {
+    public ProductDTO getProductById(Long productId) {
         try {
             String url = String.format("%s/product/%s", externalBaseUrl, productId);
             return restTemplate.getForObject(url, ProductDTO.class);

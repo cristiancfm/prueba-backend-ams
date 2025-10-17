@@ -5,6 +5,7 @@ import com.ams.backend.infrastructure.client.ProductClient;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class SimilarProductsService {
@@ -15,9 +16,9 @@ public class SimilarProductsService {
         this.productClient = productClient;
     }
 
-    public List<ProductDTO> getSimilarProducts(String productId) {
-        return productClient.getSimilarProductIds(productId);
+    public List<ProductDTO> getSimilarProducts(Long productId) {
+        List<Long> similarIds = productClient.getSimilarProductIds(productId);
 
-        return similarIds.stream().map(productClient::getProductById).toList();
+        return similarIds.stream().map(productClient::getProductById).filter(Objects::nonNull).toList();
     }
 }
