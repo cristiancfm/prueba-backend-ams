@@ -6,14 +6,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.stream.Collectors;
 
 @Service
 public class SimilarProductsService {
 
     private final ProductClient productClient;
+    private final Executor executor;
 
-    public SimilarProductsService(ProductClient productClient) {
+    public SimilarProductsService(ProductClient productClient, Executor executor) {
         this.productClient = productClient;
+        this.executor = executor;
     }
 
     public ProductDTO getProductById(Long productId) {
@@ -25,8 +30,14 @@ public class SimilarProductsService {
         List<Long> similarIds = productClient.getSimilarProductIds(productId);
 
         // Get product details for each ID
-        return similarIds.stream()
-                .map(productClient::getProductById)
+        // Fetch product details asynchronously
+        List<CompletableFuture<ProductDTO>> futures = similarIds.stream()
+                .map(id -> CompletableFuture.supplyAsync(() -> productClient.getProductById(id), executor))
+                .toList();
+
+        // Wait for all calls to complete and filter nulls
+        return futures.stream()
+                .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
                 .toList();
     }
