@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -21,14 +22,11 @@ public class ProductController {
     }
 
     @GetMapping("/{productId}/similar")
-    public ResponseEntity<List<ProductDTO>> getSimilarProducts(@PathVariable Long productId) {
-        // Check if the original product exists
-        ProductDTO originalProduct = similarProductsService.getProductById(productId);
-        if (originalProduct == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        List<ProductDTO> similarProducts = similarProductsService.getSimilarProducts(productId);
-        return ResponseEntity.ok(similarProducts);
+    public Mono<ResponseEntity<List<ProductDTO>>> getSimilarProducts(@PathVariable Long productId) {
+        // Check if the original product exists before getting similar products
+        return similarProductsService.getProductById(productId)
+                .flatMap(original -> similarProductsService.getSimilarProducts(productId)
+                        .map(ResponseEntity::ok))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 }
