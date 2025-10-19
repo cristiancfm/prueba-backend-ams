@@ -18,13 +18,15 @@ public class SimilarProductsService {
     }
 
     public Mono<ProductDTO> getProductById(Long productId) {
-        return productClient.getProductById(productId);
+        return productClient.getProductById(productId)
+                .onErrorResume(e -> Mono.empty());
     }
 
     public Mono<List<ProductDTO>> getSimilarProducts(Long productId) {
         return productClient.getSimilarProductIds(productId)
                 .flatMapMany(Flux::fromIterable)
                 .flatMap(productClient::getProductById) // Get product details for each ID
+                .onErrorResume(e -> Mono.empty())
                 .filter(Objects::nonNull) // Filter nulls
                 .collectList();
     }
