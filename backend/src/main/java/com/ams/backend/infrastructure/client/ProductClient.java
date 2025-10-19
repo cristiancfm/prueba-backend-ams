@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -23,7 +24,10 @@ public class ProductClient {
                 .retrieve()
                 .bodyToFlux(Long.class)
                 .timeout(Duration.ofSeconds(3))
-                .collectList()
+                .collectList().retryWhen(
+                        reactor.util.retry.Retry.backoff(2, Duration.ofMillis(200))
+                                .filter(throwable -> throwable instanceof IOException)
+                )
                 .onErrorReturn(Collections.emptyList());
     }
 
@@ -33,6 +37,10 @@ public class ProductClient {
                 .retrieve()
                 .bodyToMono(ProductDTO.class)
                 .timeout(Duration.ofSeconds(3))
+                .retryWhen(
+                        reactor.util.retry.Retry.backoff(2, Duration.ofMillis(200))
+                                .filter(throwable -> throwable instanceof IOException)
+                )
                 .onErrorResume(e -> Mono.empty());
     }
 }
